@@ -37,7 +37,6 @@ st.caption("Apply macroeconomic shocks to observe how institutional sector senti
 st.markdown("##### ⚡ **One-Click Historical Crisis Presets**")
 p_cols = st.columns(5)
 
-# Manage presets in session state
 if "fed_shift" not in st.session_state:
     st.session_state.fed_shift = 0
 if "oil_shift" not in st.session_state:
@@ -94,7 +93,7 @@ with p_cols[4]:
         st.session_state.scenario_title = "Baseline Neutral Conditions"
         st.rerun()
 
-st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
+st.html("<div style='margin-bottom: 16px;'></div>")
 
 # ==========================================
 # 2. INTERACTIVE SHOCK SLIDERS
@@ -152,7 +151,6 @@ for s_name, s_info in MARKET_SECTORS.items():
     delta_score += (cpi_shock / 0.5) * sens.get("CPIAUCSL", 0.0) * 4.0
     
     new_score = float(np.clip(base_s + delta_score, -100.0, 100.0))
-    
     new_alloc = "Overweight" if new_score > 20 else ("Underweight" if new_score < -20 else "Neutral")
     
     sim_results.append({
@@ -169,7 +167,6 @@ sim_df = pd.DataFrame(sim_results).sort_values(by="sim_score", ascending=False)
 
 st.markdown(f"##### 📊 **Simulated Sector Sensitivity Results: {st.session_state.scenario_title}**")
 
-# Grouped Bar Plot
 fig_sim = go.Figure()
 fig_sim.add_trace(go.Bar(
     name="Baseline Sentiment",
@@ -203,41 +200,32 @@ top_loser = sim_df.sort_values(by="delta", ascending=True).iloc[0]
 
 res_c1, res_c2, res_c3 = st.columns(3)
 with res_c1:
-    st.markdown(f"""
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">Top Shock Beneficiary</div>
-        <div class="qm-metric-value" style="color: #00E676;">{top_winner['sector']}</div>
-        <div style="font-size:0.85rem; color:#00E676; margin-top:4px;">
-            Score Shift: <b>{top_winner['delta']:+.1f} pts</b> ({top_winner['sim_score']:+.1f})
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    win_html = f"""<div class="qm-metric-card">
+<div class="qm-metric-label">Top Shock Beneficiary</div>
+<div class="qm-metric-value" style="color: #00E676;">{top_winner['sector']}</div>
+<div style="font-size:0.85rem; color:#00E676; margin-top:4px;">Score Shift: <b>{top_winner['delta']:+.1f} pts</b> ({top_winner['sim_score']:+.1f})</div>
+</div>"""
+    st.html(win_html)
 
 with res_c2:
-    st.markdown(f"""
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">Most Vulnerable Sector</div>
-        <div class="qm-metric-value" style="color: #FF5252;">{top_loser['sector']}</div>
-        <div style="font-size:0.85rem; color:#FF5252; margin-top:4px;">
-            Score Shift: <b>{top_loser['delta']:+.1f} pts</b> ({top_loser['sim_score']:+.1f})
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    lose_html = f"""<div class="qm-metric-card">
+<div class="qm-metric-label">Most Vulnerable Sector</div>
+<div class="qm-metric-value" style="color: #FF5252;">{top_loser['sector']}</div>
+<div style="font-size:0.85rem; color:#FF5252; margin-top:4px;">Score Shift: <b>{top_loser['delta']:+.1f} pts</b> ({top_loser['sim_score']:+.1f})</div>
+</div>"""
+    st.html(lose_html)
 
 with res_c3:
     ov_count = len(sim_df[sim_df['allocation'] == 'Overweight'])
     un_count = len(sim_df[sim_df['allocation'] == 'Underweight'])
-    st.markdown(f"""
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">Recommended Rebalancing</div>
-        <div class="qm-metric-value" style="color: #00F0FF;">{ov_count} Over / {un_count} Under</div>
-        <div style="font-size:0.85rem; color:#94A3B8; margin-top:4px;">
-            Post-Shock Portfolio Stance
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    alloc_summary_html = f"""<div class="qm-metric-card">
+<div class="qm-metric-label">Recommended Rebalancing</div>
+<div class="qm-metric-value" style="color: #00F0FF;">{ov_count} Over / {un_count} Under</div>
+<div style="font-size:0.85rem; color:#94A3B8; margin-top:4px;">Post-Shock Portfolio Stance</div>
+</div>"""
+    st.html(alloc_summary_html)
 
-st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+st.html("<div style='margin-bottom: 20px;'></div>")
 
 # Detailed Table
 st.dataframe(
@@ -283,17 +271,19 @@ if st.button("⚡ Generate AI Stress Memo with Gemini 3.8 Flash ➜", use_contai
         st.session_state.last_stress_memo = ai_memo
 
 if "last_stress_memo" in st.session_state:
+    stress_header = f"""<div style="background: rgba(19, 24, 34, 0.9); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 12px 12px 0 0; padding: 16px 20px; display:flex; justify-content:space-between; align-items:center;">
+<span style="font-size:1.15rem; font-weight:700; color:#C084FC;">Chief Risk Officer (CRO) Stress Memo: {st.session_state.scenario_title}</span>
+<span class="qm-badge qm-badge-ai">● GEMINI 3.8 FLASH</span>
+</div>"""
+    st.html(stress_header)
+
     st.markdown(f"""
-    <div class="qm-metric-card" style="padding: 22px; border-left: 4px solid #C084FC;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span style="font-size:1.15rem; font-weight:700; color:#C084FC;">Chief Risk Officer (CRO) Stress Memo: {st.session_state.scenario_title}</span>
-            <span class="qm-badge qm-badge-ai">● GEMINI 3.8 FLASH</span>
-        </div>
-        <div style="color: #E2E8F0; line-height: 1.7; font-size: 0.94rem;">
-            {st.session_state.last_stress_memo}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+<div style="background: rgba(15, 19, 28, 0.9); border: 1px solid rgba(168, 85, 247, 0.2); border-top: none; border-radius: 0 0 12px 12px; padding: 22px; color: #E2E8F0; line-height: 1.7; font-size: 0.94rem;">
+
+{st.session_state.last_stress_memo}
+
+</div>
+""", unsafe_allow_html=True)
     
     if st.button("💬 Discuss this Stress Test with Gemini Copilot ➜", use_container_width=True, type="secondary"):
         st.session_state.chat_prompt = f"Let's discuss portfolio hedges for our stress test: {st.session_state.scenario_title} (Fed: {fed_shift}bps, Oil: ${oil_shift})."

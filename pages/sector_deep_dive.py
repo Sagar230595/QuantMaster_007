@@ -48,7 +48,7 @@ with c_sel:
     st.session_state.selected_sector = selected_sector
 
 with c_back:
-    st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+    st.html("<div style='margin-top: 28px;'></div>")
     if st.button("⬅ Back to Sector Matrix", use_container_width=True, type="secondary"):
         st.switch_page("pages/sector_sentiment.py")
 
@@ -75,56 +75,51 @@ score_color = "#00E676" if score > 15 else ("#FF1744" if score < -15 else "#FFD6
 # Sector KPI Ribbon
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 with kpi1:
-    st.markdown(f"""
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">ETF Benchmark</div>
-        <div class="qm-metric-value">{ticker}</div>
-        <div style="font-size:0.8rem; color:#94A3B8; margin-top:4px;">{sector_info['name']}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    card1 = f"""<div class="qm-metric-card">
+<div class="qm-metric-label">ETF Benchmark</div>
+<div class="qm-metric-value">{ticker}</div>
+<div style="font-size:0.8rem; color:#94A3B8; margin-top:4px;">{sector_info['name']}</div>
+</div>"""
+    st.html(card1)
     
 with kpi2:
     price_val = technicals.get("latest", ret_dict.get("Price", 0.0))
-    st.markdown(f"""
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">Latest Price</div>
-        <div class="qm-metric-value">${price_val:.2f}</div>
-        <div style="font-size:0.8rem; color:#94A3B8; margin-top:4px;">Adjusted Close</div>
-    </div>
-    """, unsafe_allow_html=True)
+    card2 = f"""<div class="qm-metric-card">
+<div class="qm-metric-label">Latest Price</div>
+<div class="qm-metric-value">${price_val:.2f}</div>
+<div style="font-size:0.8rem; color:#94A3B8; margin-top:4px;">Adjusted Close</div>
+</div>"""
+    st.html(card2)
 
 with kpi3:
-    st.markdown(f"""
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">Quant Sentiment</div>
-        <div class="qm-metric-value" style="color: {score_color};">{score:+.1f}</div>
-        <div style="font-size:0.8rem; color:{score_color}; margin-top:4px;">{sector_sent.get('sentiment_label', 'Neutral')}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    card3 = f"""<div class="qm-metric-card">
+<div class="qm-metric-label">Quant Sentiment</div>
+<div class="qm-metric-value" style="color: {score_color};">{score:+.1f}</div>
+<div style="font-size:0.8rem; color:{score_color}; margin-top:4px;">{sector_sent.get('sentiment_label', 'Neutral')}</div>
+</div>"""
+    st.html(card3)
 
 with kpi4:
     alloc = sector_sent.get('allocation', 'Neutral').upper()
-    st.markdown(f"""
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">Recommended Stance</div>
-        <div class="qm-metric-value" style="font-size:1.4rem; color:#00F0FF;">{alloc}</div>
-        <div style="font-size:0.8rem; color:#94A3B8; margin-top:4px;">Tactical Allocation</div>
-    </div>
-    """, unsafe_allow_html=True)
+    card4 = f"""<div class="qm-metric-card">
+<div class="qm-metric-label">Recommended Stance</div>
+<div class="qm-metric-value" style="font-size:1.4rem; color:#00F0FF;">{alloc}</div>
+<div style="font-size:0.8rem; color:#94A3B8; margin-top:4px;">Tactical Allocation</div>
+</div>"""
+    st.html(card4)
 
 with kpi5:
     ret_1m = ret_dict.get("1M %", 0.0)
     delta_class = "qm-metric-delta-pos" if ret_1m >= 0 else "qm-metric-delta-neg"
     arrow = "▲" if ret_1m >= 0 else "▼"
-    st.markdown(f"""
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">1-Month Return</div>
-        <div class="qm-metric-value">{ret_1m:+.2f}%</div>
-        <div class="{delta_class}">{arrow} 1Y: {ret_dict.get('1Y %', 0.0):+.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
+    card5 = f"""<div class="qm-metric-card">
+<div class="qm-metric-label">1-Month Return</div>
+<div class="qm-metric-value">{ret_1m:+.2f}%</div>
+<div class="{delta_class}">{arrow} 1Y: {ret_dict.get('1Y %', 0.0):+.1f}%</div>
+</div>"""
+    st.html(card5)
 
-st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+st.html("<div style='margin-bottom: 20px;'></div>")
 
 # ==========================================
 # 2. PRICE TECHNICIANS & MOVING AVERAGES
@@ -151,37 +146,24 @@ with col_side:
     )
     trend_color = "#00E676" if "Bullish" in trend_state else ("#FF1744" if "Bearish" in trend_state else "#FFD600")
 
-    st.markdown(f"""
-    <div class="qm-metric-card" style="margin-bottom: 12px;">
-        <div class="qm-metric-label">Trend Alignment</div>
-        <div style="font-weight: 700; color: {trend_color}; font-size: 0.95rem;">{trend_state}</div>
-        <div style="font-size: 0.8rem; color: #94A3B8; margin-top: 6px;">
-            50-SMA: <b>${sma50:.2f}</b> | 200-SMA: <b>${sma200:.2f}</b>
-        </div>
-    </div>
-    
-    <div class="qm-metric-card" style="margin-bottom: 12px;">
-        <div class="qm-metric-label">52-Week Trading Range</div>
-        <div style="font-size: 1.15rem; font-family: 'JetBrains Mono'; font-weight: 700; color: #FFFFFF;">
-            ${lo52:.2f} — ${hi52:.2f}
-        </div>
-        <div style="font-size: 0.8rem; color: #94A3B8; margin-top: 4px;">
-            Distance from 52W High: <b style="color: {'#00E676' if pct_hi > -5 else '#FF1744'}">{pct_hi:+.1f}%</b>
-        </div>
-    </div>
-    
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">30-Day Realized Volatility</div>
-        <div style="font-size: 1.45rem; font-family: 'JetBrains Mono'; font-weight: 700; color: #C084FC;">
-            {vol:.1f}%
-        </div>
-        <div style="font-size: 0.8rem; color: #94A3B8; margin-top: 4px;">
-            Annualized Standard Deviation
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    side_html = f"""<div class="qm-metric-card" style="margin-bottom: 12px;">
+<div class="qm-metric-label">Trend Alignment</div>
+<div style="font-weight: 700; color: {trend_color}; font-size: 0.95rem;">{trend_state}</div>
+<div style="font-size: 0.8rem; color: #94A3B8; margin-top: 6px;">50-SMA: <b>${sma50:.2f}</b> | 200-SMA: <b>${sma200:.2f}</b></div>
+</div>
+<div class="qm-metric-card" style="margin-bottom: 12px;">
+<div class="qm-metric-label">52-Week Trading Range</div>
+<div style="font-size: 1.15rem; font-family: 'JetBrains Mono'; font-weight: 700; color: #FFFFFF;">${lo52:.2f} — ${hi52:.2f}</div>
+<div style="font-size: 0.8rem; color: #94A3B8; margin-top: 4px;">Distance from 52W High: <b style="color: {'#00E676' if pct_hi > -5 else '#FF1744'}">{pct_hi:+.1f}%</b></div>
+</div>
+<div class="qm-metric-card">
+<div class="qm-metric-label">30-Day Realized Volatility</div>
+<div style="font-size: 1.45rem; font-family: 'JetBrains Mono'; font-weight: 700; color: #C084FC;">{vol:.1f}%</div>
+<div style="font-size: 0.8rem; color: #94A3B8; margin-top: 4px;">Annualized Standard Deviation</div>
+</div>"""
+    st.html(side_html)
 
-st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+st.html("<div style='margin-bottom: 20px;'></div>")
 
 # ==========================================
 # 3. MACRO FACTOR SENSITIVITY & TOP HOLDINGS
@@ -199,19 +181,14 @@ with col_holdings:
     st.caption("Key mega-cap companies driving sector earnings, cash flows, and index weighting.")
     
     holdings = sector_info.get("top_holdings", [])
-    holdings_pills = " ".join([f"<span class='qm-holding-pill' style='font-size:1rem; padding: 6px 14px;'>{h}</span>" for h in holdings])
+    holdings_pills = "".join([f"<span class='qm-holding-pill' style='font-size:0.95rem; padding: 6px 14px;'>{h}</span>" for h in holdings])
     
-    st.markdown(f"""
-    <div class="qm-metric-card" style="margin-bottom: 14px;">
-        <div class="qm-metric-label">Dominant Index Constituents</div>
-        <div style="margin-top: 10px; margin-bottom: 10px;">
-            {holdings_pills}
-        </div>
-        <div style="font-size: 0.85rem; color: #94A3B8; line-height: 1.5; margin-top: 8px;">
-            {sector_info.get('description', '')}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    holdings_card = f"""<div class="qm-metric-card" style="margin-bottom: 14px;">
+<div class="qm-metric-label">Dominant Index Constituents</div>
+<div style="margin-top: 10px; margin-bottom: 10px;">{holdings_pills}</div>
+<div style="font-size: 0.85rem; color: #94A3B8; line-height: 1.5; margin-top: 8px;">{sector_info.get('description', '')}</div>
+</div>"""
+    st.html(holdings_card)
     
     st.markdown("##### 🔑 **Core Economic Drivers**")
     for d in sector_info.get("key_drivers", []):
@@ -240,19 +217,21 @@ if memo_cache_key not in st.session_state:
 else:
     memo_content = st.session_state[memo_cache_key]
 
+memo_header = f"""<div style="background: rgba(19, 24, 34, 0.9); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 12px 12px 0 0; padding: 18px 22px; display:flex; justify-content:space-between; align-items:center;">
+<span style="font-size:1.15rem; font-weight:700; color:#00F0FF;">{selected_sector} Institutional Strategic Memo</span>
+<span class="qm-badge qm-badge-ai">● GEMINI 3.8 FLASH SYNTHESIZED</span>
+</div>"""
+st.html(memo_header)
+
 st.markdown(f"""
-<div class="qm-metric-card" style="padding: 24px; border-left: 4px solid #00F0FF;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <span style="font-size:1.15rem; font-weight:700; color:#00F0FF;">{selected_sector} Institutional Strategic Memo</span>
-        <span class="qm-badge qm-badge-ai">● GEMINI 3.8 FLASH SYNTHESIZED</span>
-    </div>
-    <div style="color: #E2E8F0; line-height: 1.7; font-size: 0.94rem;">
-        {memo_content}
-    </div>
+<div style="background: rgba(15, 19, 28, 0.9); border: 1px solid rgba(0, 240, 255, 0.15); border-top: none; border-radius: 0 0 12px 12px; padding: 22px; color: #E2E8F0; line-height: 1.7; font-size: 0.94rem;">
+
+{memo_content}
+
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+st.html("<div style='margin-bottom: 20px;'></div>")
 
 # Navigation Buttons
 act_col1, act_col2, act_col3 = st.columns(3)

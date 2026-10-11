@@ -28,19 +28,14 @@ render_sidebar()
 regime = report.get('overall_regime', 'Economic Transition')
 exec_summary = report.get('executive_summary', 'Synthesizing live macroeconomic indicators...')
 
-st.markdown(f"""
-<div class="qm-metric-card" style="margin-bottom: 20px; border-left: 4px solid #C084FC;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <div style="font-size: 1.25rem; font-weight: 700; color: #00F0FF;">
-            Executive Macro Intelligence Briefing: {regime}
-        </div>
-        <span class="qm-badge qm-badge-ai">● GEMINI 3.8 FLASH VERIFIED</span>
-    </div>
-    <p style="font-size: 0.95rem; color: #E2E8F0; line-height: 1.65; margin-top: 12px; margin-bottom: 0;">
-        {exec_summary}
-    </p>
+briefing_html = f"""<div class="qm-metric-card" style="margin-bottom: 20px; border-left: 4px solid #C084FC;">
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+<div style="font-size: 1.25rem; font-weight: 700; color: #00F0FF;">Executive Macro Intelligence Briefing: {regime}</div>
+<span class="qm-badge qm-badge-ai">● GEMINI 3.8 FLASH VERIFIED</span>
 </div>
-""", unsafe_allow_html=True)
+<p style="font-size: 0.95rem; color: #E2E8F0; line-height: 1.65; margin-top: 12px; margin-bottom: 0;">{exec_summary}</p>
+</div>"""
+st.html(briefing_html)
 
 # ==========================================
 # 2. PROMPT SUGGESTION CHIPS
@@ -77,7 +72,6 @@ st.markdown("---")
 # ==========================================
 st.markdown("#### 💬 **Conversational Strategy Terminal**")
 
-# Display previous chat messages
 chat_box = st.container()
 with chat_box:
     if not st.session_state.chat_history:
@@ -85,9 +79,11 @@ with chat_box:
     else:
         for msg in st.session_state.chat_history:
             if msg["role"] == "user":
-                st.markdown(f'<div class="qm-chat-bubble-user">👤 <b>Quantitative Portfolio Manager:</b><br>{msg["content"]}</div>', unsafe_allow_html=True)
+                user_bubble = f'<div class="qm-chat-bubble-user">👤 <b>Quantitative Portfolio Manager:</b><br>{msg["content"]}</div>'
+                st.html(user_bubble)
             else:
-                st.markdown(f'<div class="qm-chat-bubble-assistant">🤖 <b>Gemini 3.8 Flash Copilot:</b><br>{msg["content"]}</div>', unsafe_allow_html=True)
+                assistant_bubble = f'<div class="qm-chat-bubble-assistant">🤖 <b>Gemini 3.8 Flash Copilot:</b><br>{msg["content"]}</div>'
+                st.html(assistant_bubble)
 
 # Handle user input from text box or prompt chips
 user_q = st.chat_input("Ask Gemini 3.8 Flash about interest rates, inflation, sector rotations, or asset allocation...")
@@ -107,7 +103,7 @@ if target_query:
     st.session_state.chat_history.append({"role": "assistant", "content": ans})
     st.rerun()
 
-st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+st.html("<div style='margin-bottom: 20px;'></div>")
 
 # Utilities: Clear chat and export
 c_clear, c_export, c_nav = st.columns([1.5, 2, 2.5])

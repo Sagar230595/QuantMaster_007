@@ -30,7 +30,6 @@ render_sidebar()
 st.markdown("#### 📋 **Global Economic Indicator Registry**")
 st.caption("Registry of tracked Federal Reserve Economic Data (FRED) series with latest observations, momentum, and transmission pathways.")
 
-# Category filter
 cat_options = ["All Categories"] + sorted(list(set([info["category"] for info in FRED_INDICATORS.values()])))
 sel_cat = st.selectbox("Filter Indicators by Category", options=cat_options, index=0)
 
@@ -102,37 +101,30 @@ with col_meta:
     hi_val = series_s.max() if not series_s.empty else 0.0
     lo_val = series_s.min() if not series_s.empty else 0.0
 
-    st.markdown(f"""
-    <div class="qm-metric-card" style="margin-bottom: 12px;">
-        <div class="qm-metric-label">{ind_info['name']}</div>
-        <div class="qm-metric-value">{latest_val:,.2f} <span style="font-size:0.85rem; color:#94A3B8;">{ind_info['unit']}</span></div>
-        <div style="font-size:0.82rem; color:#00F0FF; margin-top:4px;">Frequency: <b>{ind_info['frequency']}</b></div>
-    </div>
-    
-    <div class="qm-metric-card" style="margin-bottom: 12px;">
-        <div class="qm-metric-label">Historical Range Statistics</div>
-        <div style="font-size:0.85rem; color:#CBD5E1; line-height:1.7;">
-            • Maximum: <b style="font-family:'JetBrains Mono'; color:#FFFFFF;">{hi_val:,.2f}</b><br>
-            • Minimum: <b style="font-family:'JetBrains Mono'; color:#FFFFFF;">{lo_val:,.2f}</b><br>
-            • Mean: <b style="font-family:'JetBrains Mono'; color:#FFFFFF;">{mean_val:,.2f}</b>
-        </div>
-    </div>
-    
-    <div class="qm-metric-card">
-        <div class="qm-metric-label">Economic Role & Rationale</div>
-        <div style="font-size:0.82rem; color:#CBD5E1; line-height:1.5;">
-            {ind_info['description']}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown(f"""
-<div class="qm-callout">
-    <strong style="color: #00F0FF;">Market Impact & Transmission Pathway:</strong> {ind_info['impact']}
+    meta_html = f"""<div class="qm-metric-card" style="margin-bottom: 12px;">
+<div class="qm-metric-label">{ind_info['name']}</div>
+<div class="qm-metric-value">{latest_val:,.2f} <span style="font-size:0.85rem; color:#94A3B8;">{ind_info['unit']}</span></div>
+<div style="font-size:0.82rem; color:#00F0FF; margin-top:4px;">Frequency: <b>{ind_info['frequency']}</b></div>
 </div>
-""", unsafe_allow_html=True)
+<div class="qm-metric-card" style="margin-bottom: 12px;">
+<div class="qm-metric-label">Historical Range Statistics</div>
+<div style="font-size:0.85rem; color:#CBD5E1; line-height:1.7;">
+• Maximum: <b style="font-family:'JetBrains Mono'; color:#FFFFFF;">{hi_val:,.2f}</b><br>
+• Minimum: <b style="font-family:'JetBrains Mono'; color:#FFFFFF;">{lo_val:,.2f}</b><br>
+• Mean: <b style="font-family:'JetBrains Mono'; color:#FFFFFF;">{mean_val:,.2f}</b>
+</div>
+</div>
+<div class="qm-metric-card">
+<div class="qm-metric-label">Economic Role & Rationale</div>
+<div style="font-size:0.82rem; color:#CBD5E1; line-height:1.5;">{ind_info['description']}</div>
+</div>"""
+    st.html(meta_html)
 
-# Jump to Macro Explorer
+callout_html = f"""<div class="qm-callout">
+<strong style="color: #00F0FF;">Market Impact & Transmission Pathway:</strong> {ind_info['impact']}
+</div>"""
+st.html(callout_html)
+
 if st.button(f"📈 Overlay {ind_info['name']} with Sector ETFs in Macro Explorer ➜", use_container_width=True):
     st.session_state.selected_macro_id = inspect_id
     st.switch_page("pages/macro_explorer.py")

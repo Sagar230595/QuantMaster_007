@@ -74,11 +74,9 @@ if chosen_macro_id in macro_df.columns and chosen_ticker in sector_prices_df.col
 
 # Indicator Quick Insight
 macro_meta = FRED_INDICATORS.get(chosen_macro_id, {})
-st.markdown(f"""
-<div class="qm-callout">
-    <strong style="color: #00F0FF;">Economic Transmission Channel:</strong> {macro_meta.get('impact', '')}
-</div>
-""", unsafe_allow_html=True)
+st.html(f"""<div class="qm-callout">
+<strong style="color: #00F0FF;">Economic Transmission Channel:</strong> {macro_meta.get('impact', '')}
+</div>""")
 
 st.markdown("---")
 

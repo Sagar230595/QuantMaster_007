@@ -1,7 +1,7 @@
 """
 QuantMaster 007 - Common UI & State Management
 Provides shared terminal state, navigation bars, header banners, and sidebar controls.
-Ensures seamless multi-page interactivity and zero API-key prompt clutter.
+Ensures seamless multi-page interactivity, zero API-key prompt clutter, and clean HTML rendering.
 """
 
 import os
@@ -54,7 +54,7 @@ def get_shared_data():
     return macro_df, sector_prices_df, macro_summary, sector_returns_df, st.session_state.sentiment_report
 
 def render_terminal_header(subtitle: str = "Global Macroeconomic Intelligence & Sector Sentiment Terminal"):
-    """Renders the institutional top header with live credentials and regime badges."""
+    """Renders the institutional top header with live credentials and regime badges using native st.html."""
     st.markdown(inject_styles(), unsafe_allow_html=True)
     report = st.session_state.get("sentiment_report", {})
     regime = report.get("overall_regime", "EXPANSION") if report else "EXPANSION"
@@ -64,19 +64,18 @@ def render_terminal_header(subtitle: str = "Global Macroeconomic Intelligence & 
     gemini_badge = f'<span class="qm-badge qm-badge-ai">● {DEFAULT_GEMINI_MODEL.upper()} ACTIVE</span>'
     regime_badge = f'<span class="qm-badge qm-badge-live">REGIME: {regime.upper()}</span>'
 
-    st.markdown(f"""
-    <div class="qm-header-container">
-        <div>
-            <h1 class="qm-title">QUANTMASTER 007</h1>
-            <div class="qm-subtitle">{subtitle}</div>
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            {fred_badge}
-            {gemini_badge}
-            {regime_badge}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    header_html = f"""<div class="qm-header-container">
+<div>
+<h1 class="qm-title">QUANTMASTER 007</h1>
+<div class="qm-subtitle">{subtitle}</div>
+</div>
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+{fred_badge}
+{gemini_badge}
+{regime_badge}
+</div>
+</div>"""
+    st.html(header_html)
 
 def render_quick_navigation(active_page: str = "overview"):
     """
@@ -101,7 +100,69 @@ def render_quick_navigation(active_page: str = "overview"):
                 if not is_active:
                     st.switch_page(path)
                     
-    st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
+    st.html("<div style='margin-bottom: 16px;'></div>")
+
+def render_sector_card(s: dict):
+    """
+    Renders an institutional sector card with zero markdown indentation issues using st.html.
+    """
+    sector_name = s.get("sector", "")
+    score = s.get("score", 0.0)
+    label = s.get("sentiment_label", "Neutral")
+    alloc = s.get("allocation", "Neutral")
+    catalyst = s.get("key_catalyst", "")
+    risk = s.get("risk_factor", "")
+    
+    sec_info = MARKET_SECTORS.get(sector_name, {})
+    etf = sec_info.get("etf", "ETF")
+    category = sec_info.get("category", "")
+    holdings = sec_info.get("top_holdings", [])[:4]
+    
+    if score > 15:
+        card_class = "qm-sector-bullish"
+        score_color = "#00E676"
+    elif score < -15:
+        card_class = "qm-sector-bearish"
+        score_color = "#FF1744"
+    else:
+        card_class = "qm-sector-neutral"
+        score_color = "#FFD600"
+        
+    alloc_class = (
+        "qm-alloc-overweight" if alloc.lower() == "overweight" else
+        ("qm-alloc-underweight" if alloc.lower() == "underweight" else "qm-alloc-neutral")
+    )
+    
+    holdings_pills = "".join([f'<span class="qm-holding-pill">{h}</span>' for h in holdings])
+    progress_pct = max(0.0, min(100.0, (score + 100.0) / 2.0))
+    
+    card_html = f"""<div class="qm-sector-card {card_class}">
+<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+<div>
+<div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF;">{sector_name}</div>
+<div style="font-size: 0.8rem; color: #94A3B8; font-family: 'JetBrains Mono';">{etf} • {category}</div>
+</div>
+<span class="{alloc_class}">{alloc.upper()}</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 6px 0;">
+<span style="font-size: 0.78rem; text-transform: uppercase; color: #64748B; font-weight: 600;">Sentiment Score</span>
+<span style="font-size: 1.45rem; font-weight: 800; font-family: 'JetBrains Mono'; color: {score_color};">{score:+.1f}</span>
+</div>
+<div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-bottom: 12px;">
+<div style="width: {progress_pct:.1f}%; height: 100%; background: {score_color}; border-radius: 3px;"></div>
+</div>
+<div style="font-size: 0.83rem; color: #CBD5E1; line-height: 1.45; margin-bottom: 8px;">
+<strong style="color: #00F0FF;">Key Catalyst:</strong> {catalyst}
+</div>
+<div style="font-size: 0.80rem; color: #94A3B8; line-height: 1.4; margin-bottom: 12px;">
+<strong style="color: #FF5252;">Watch Risk:</strong> {risk}
+</div>
+<div style="margin-top: 10px; margin-bottom: 14px;">
+<span style="font-size: 0.74rem; color: #64748B; text-transform: uppercase; font-weight: 600;">Top Holdings:</span><br>
+{holdings_pills}
+</div>
+</div>"""
+    st.html(card_html)
 
 def render_sidebar():
     """
@@ -113,14 +174,13 @@ def render_sidebar():
         st.markdown("---")
         
         # System status card
-        st.markdown("""
-        <div style="background: rgba(19, 24, 34, 0.7); border: 1px solid rgba(0, 240, 255, 0.15); border-radius: 10px; padding: 12px; margin-bottom: 16px;">
-            <div style="font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Active Engine Status</div>
-            <div style="font-size: 0.85rem; color: #00E676; margin-top: 4px;">🟢 FRED Real-Time API: <b>Active</b></div>
-            <div style="font-size: 0.85rem; color: #C084FC; margin-top: 2px;">🟣 Gemini Core: <b>gemini-3.8-flash</b></div>
-            <div style="font-size: 0.85rem; color: #00F0FF; margin-top: 2px;">⚡ Multi-Page Architecture: <b>Online</b></div>
-        </div>
-        """, unsafe_allow_html=True)
+        status_html = """<div style="background: rgba(19, 24, 34, 0.7); border: 1px solid rgba(0, 240, 255, 0.15); border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+<div style="font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Active Engine Status</div>
+<div style="font-size: 0.85rem; color: #00E676; margin-top: 4px;">🟢 FRED Real-Time API: <b>Active</b></div>
+<div style="font-size: 0.85rem; color: #C084FC; margin-top: 2px;">🟣 Gemini Core: <b>gemini-3.8-flash</b></div>
+<div style="font-size: 0.85rem; color: #00F0FF; margin-top: 2px;">⚡ Multi-Page Architecture: <b>Online</b></div>
+</div>"""
+        st.html(status_html)
         
         st.markdown("#### ⚙️ **Horizon & Universe**")
         lookback_options = ["6 Months", "1 Year", "3 Years", "5 Years"]

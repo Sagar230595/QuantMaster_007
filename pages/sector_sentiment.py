@@ -25,6 +25,66 @@ render_sidebar()
 
 all_sectors_data = report.get("sectors", [])
 
+def render_sector_card(s: dict):
+    """Renders institutional sector card with zero markdown indentation issues using st.html."""
+    sector_name = s.get("sector", "")
+    score = s.get("score", 0.0)
+    label = s.get("sentiment_label", "Neutral")
+    alloc = s.get("allocation", "Neutral")
+    catalyst = s.get("key_catalyst", "")
+    risk = s.get("risk_factor", "")
+    
+    sec_info = MARKET_SECTORS.get(sector_name, {})
+    etf = sec_info.get("etf", "ETF")
+    category = sec_info.get("category", "")
+    holdings = sec_info.get("top_holdings", [])[:4]
+    
+    if score > 15:
+        card_class = "qm-sector-bullish"
+        score_color = "#00E676"
+    elif score < -15:
+        card_class = "qm-sector-bearish"
+        score_color = "#FF1744"
+    else:
+        card_class = "qm-sector-neutral"
+        score_color = "#FFD600"
+        
+    alloc_class = (
+        "qm-alloc-overweight" if alloc.lower() == "overweight" else
+        ("qm-alloc-underweight" if alloc.lower() == "underweight" else "qm-alloc-neutral")
+    )
+    
+    holdings_pills = "".join([f'<span class="qm-holding-pill">{h}</span>' for h in holdings])
+    progress_pct = max(0.0, min(100.0, (score + 100.0) / 2.0))
+    
+    card_html = f"""<div class="qm-sector-card {card_class}">
+<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+<div>
+<div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF;">{sector_name}</div>
+<div style="font-size: 0.8rem; color: #94A3B8; font-family: 'JetBrains Mono';">{etf} • {category}</div>
+</div>
+<span class="{alloc_class}">{alloc.upper()}</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 6px 0;">
+<span style="font-size: 0.78rem; text-transform: uppercase; color: #64748B; font-weight: 600;">Sentiment Score</span>
+<span style="font-size: 1.45rem; font-weight: 800; font-family: 'JetBrains Mono'; color: {score_color};">{score:+.1f}</span>
+</div>
+<div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-bottom: 12px;">
+<div style="width: {progress_pct:.1f}%; height: 100%; background: {score_color}; border-radius: 3px;"></div>
+</div>
+<div style="font-size: 0.83rem; color: #CBD5E1; line-height: 1.45; margin-bottom: 8px;">
+<strong style="color: #00F0FF;">Key Catalyst:</strong> {catalyst}
+</div>
+<div style="font-size: 0.80rem; color: #94A3B8; line-height: 1.4; margin-bottom: 12px;">
+<strong style="color: #FF5252;">Watch Risk:</strong> {risk}
+</div>
+<div style="margin-top: 10px; margin-bottom: 14px;">
+<span style="font-size: 0.74rem; color: #64748B; text-transform: uppercase; font-weight: 600;">Top Holdings:</span><br>
+{holdings_pills}
+</div>
+</div>"""
+    st.html(card_html)
+
 # ==========================================
 # 1. RADAR & REGIME SYNTHESIS
 # ==========================================
@@ -39,17 +99,13 @@ with col_gauge:
     st.plotly_chart(risk_gauge, use_container_width=True)
     
     regime = report.get('overall_regime', 'Economic Transition')
-    st.markdown(f"""
-    <div class="qm-metric-card" style="margin-top: 10px;">
-        <div class="qm-metric-label">Macroeconomic Cycle Regime</div>
-        <div style="font-size: 1.15rem; font-weight: 700; color: #00F0FF; margin-top: 4px;">
-            {regime}
-        </div>
-        <div style="font-size: 0.85rem; color: #CBD5E1; margin-top: 6px; line-height: 1.45;">
-            {report.get('executive_summary', '')}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    exec_summary = report.get('executive_summary', '')
+    regime_card_html = f"""<div class="qm-metric-card" style="margin-top: 10px;">
+<div class="qm-metric-label">Macroeconomic Cycle Regime</div>
+<div style="font-size: 1.15rem; font-weight: 700; color: #00F0FF; margin-top: 4px;">{regime}</div>
+<div style="font-size: 0.85rem; color: #CBD5E1; margin-top: 6px; line-height: 1.45;">{exec_summary}</div>
+</div>"""
+    st.html(regime_card_html)
 
 st.markdown("---")
 
@@ -104,66 +160,9 @@ else:
 card_cols = st.columns(3)
 for idx, s in enumerate(filtered_list):
     sector_name = s["sector"]
-    score = s["score"]
-    label = s["sentiment_label"]
-    alloc = s["allocation"]
-    catalyst = s["key_catalyst"]
-    risk = s["risk_factor"]
-    
-    sec_info = MARKET_SECTORS.get(sector_name, {})
-    etf = sec_info.get("etf", "ETF")
-    category = sec_info.get("category", "")
-    holdings = sec_info.get("top_holdings", [])[:4]
-    
-    if score > 15:
-        card_class = "qm-sector-bullish"
-        score_color = "#00E676"
-    elif score < -15:
-        card_class = "qm-sector-bearish"
-        score_color = "#FF1744"
-    else:
-        card_class = "qm-sector-neutral"
-        score_color = "#FFD600"
-        
-    alloc_class = (
-        "qm-alloc-overweight" if alloc.lower() == "overweight" else
-        ("qm-alloc-underweight" if alloc.lower() == "underweight" else "qm-alloc-neutral")
-    )
     
     with card_cols[idx % 3]:
-        holdings_html = " ".join([f"<span class='qm-holding-pill'>{h}</span>" for h in holdings])
-        st.markdown(f"""
-        <div class="qm-sector-card {card_class}">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF;">{sector_name}</div>
-                    <div style="font-size: 0.8rem; color: #94A3B8; font-family: 'JetBrains Mono';">{etf} • {category}</div>
-                </div>
-                <span class="{alloc_class}">{alloc.upper()}</span>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 6px 0;">
-                <span style="font-size: 0.78rem; text-transform: uppercase; color: #64748B; font-weight: 600;">Sentiment Score</span>
-                <span style="font-size: 1.45rem; font-weight: 800; font-family: 'JetBrains Mono'; color: {score_color};">{score:+.1f}</span>
-            </div>
-            
-            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; margin-bottom: 12px;">
-                <div style="width: {(score + 100) / 2}%; height: 100%; background: {score_color}; border-radius: 3px;"></div>
-            </div>
-            
-            <div style="font-size: 0.83rem; color: #CBD5E1; line-height: 1.45; margin-bottom: 8px;">
-                <strong style="color: #00F0FF;">Key Catalyst:</strong> {catalyst}
-            </div>
-            <div style="font-size: 0.80rem; color: #94A3B8; line-height: 1.4; margin-bottom: 12px;">
-                <strong style="color: #FF5252;">Watch Risk:</strong> {risk}
-            </div>
-            
-            <div style="margin-top: 10px; margin-bottom: 14px;">
-                <span style="font-size: 0.74rem; color: #64748B; text-transform: uppercase; font-weight: 600;">Top Holdings:</span><br>
-                {holdings_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        render_sector_card(s)
         
         btn_c1, btn_c2 = st.columns(2)
         with btn_c1:
