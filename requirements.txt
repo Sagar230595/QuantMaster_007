@@ -1,0 +1,17 @@
+# Core Framework & Web GUI
+streamlit>=1.39.0
+plotly>=5.24.0
+pandas>=2.2.0
+numpy>=2.0.0
+
+# Financial & Economic Data Providers
+fredapi>=0.5.2
+yfinance>=0.2.44
+requests>=2.32.0
+
+# Google Gemini AI SDK
+google-genai>=0.1.1
+google-generativeai>=0.8.3
+
+# Utilities & Configuration
+python-dotenv>=1.0.1
