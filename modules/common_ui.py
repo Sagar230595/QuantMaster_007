@@ -60,8 +60,8 @@ def render_terminal_header(subtitle: str = "Global Macroeconomic Intelligence & 
     regime = report.get("overall_regime", "EXPANSION") if report else "EXPANSION"
     
     # Credential badges
-    fred_badge = '<span class="qm-badge qm-badge-live">● FRED LIVE API</span>'
-    gemini_badge = f'<span class="qm-badge qm-badge-ai">● {DEFAULT_GEMINI_MODEL.upper()} ACTIVE</span>'
+    fred_badge = '<span class="qm-badge qm-badge-live">● FRED LIVE API</span>' if FRED_API_KEY else '<span class="qm-badge qm-badge-demo">● FRED DEMO MODE</span>'
+    gemini_badge = f'<span class="qm-badge qm-badge-ai">● {DEFAULT_GEMINI_MODEL.upper()} ACTIVE</span>' if GEMINI_API_KEY else '<span class="qm-badge qm-badge-demo">● GEMINI DEMO MODE</span>'
     regime_badge = f'<span class="qm-badge qm-badge-live">REGIME: {regime.upper()}</span>'
 
     header_html = f"""<div class="qm-header-container">
@@ -174,10 +174,13 @@ def render_sidebar():
         st.markdown("---")
         
         # System status card
-        status_html = """<div style="background: rgba(19, 24, 34, 0.7); border: 1px solid rgba(0, 240, 255, 0.15); border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+        fred_status = '<div style="font-size: 0.85rem; color: #00E676; margin-top: 4px;">🟢 FRED Real-Time API: <b>Active</b></div>' if FRED_API_KEY else '<div style="font-size: 0.85rem; color: #FFD600; margin-top: 4px;">🟡 FRED Real-Time API: <b>Demo Mode</b></div>'
+        gemini_status = f'<div style="font-size: 0.85rem; color: #C084FC; margin-top: 2px;">🟣 Gemini Core: <b>{DEFAULT_GEMINI_MODEL}</b></div>' if GEMINI_API_KEY else '<div style="font-size: 0.85rem; color: #FFD600; margin-top: 2px;">🟡 Gemini Core: <b>Simulation Mode</b></div>'
+        
+        status_html = f"""<div style="background: rgba(19, 24, 34, 0.7); border: 1px solid rgba(0, 240, 255, 0.15); border-radius: 10px; padding: 12px; margin-bottom: 16px;">
 <div style="font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Active Engine Status</div>
-<div style="font-size: 0.85rem; color: #00E676; margin-top: 4px;">🟢 FRED Real-Time API: <b>Active</b></div>
-<div style="font-size: 0.85rem; color: #C084FC; margin-top: 2px;">🟣 Gemini Core: <b>gemini-3.8-flash</b></div>
+{fred_status}
+{gemini_status}
 <div style="font-size: 0.85rem; color: #00F0FF; margin-top: 2px;">⚡ Multi-Page Architecture: <b>Online</b></div>
 </div>"""
         st.html(status_html)

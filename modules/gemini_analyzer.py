@@ -242,6 +242,16 @@ def ask_gemini_copilot(question: str, macro_summary: list, chat_history: list,
     effective_key = (api_key or GEMINI_API_KEY or os.getenv("GEMINI_API_KEY", "")).strip()
     clean_model = (model_name or DEFAULT_GEMINI_MODEL).strip()
 
+    if not effective_key:
+        fed_val = next((m['latest'] for m in macro_summary if m['id'] == 'FEDFUNDS'), 5.33)
+        return (
+            "💡 **Institutional Copilot Demo Mode** (No `GEMINI_API_KEY` configured in `.env`)\n\n"
+            "To activate live interactive responses powered by Google Gemini:\n"
+            "1. Add your Google Gemini API key to the `.env` file (`GEMINI_API_KEY=\"your_key\"`).\n"
+            "2. Refresh the terminal session.\n\n"
+            f"**Current Signals**: Federal Funds Rate is at {fed_val:.2f}% with active monitoring across all 12 market sectors."
+        )
+
     macro_context = "\n".join([
         f"- {m['name']} ({m['id']}): {m['latest']:.2f} {m['unit']} (1M: {m['change_1m']:+.2f}, 1Y: {m['pct_1y']:+.1f}%)"
         for m in macro_summary[:10]
@@ -281,6 +291,16 @@ def analyze_sector_deep_dive(sector_name: str, sector_info: dict, macro_summary:
     effective_key = (api_key or GEMINI_API_KEY or os.getenv("GEMINI_API_KEY", "")).strip()
     clean_model = (model_name or DEFAULT_GEMINI_MODEL).strip()
     
+    if not effective_key:
+        return (
+            f"### Institutional Briefing: {sector_name} ({sector_info.get('etf', '')})\n\n"
+            f"- **Tactical Stance**: Constructive Overweight on high quality balance sheets.\n"
+            f"- **Transmission Channel**: Directly driven by {', '.join(sector_info.get('key_drivers', []))}.\n"
+            f"- **Key Moats**: Institutional market leadership in top constituents ({', '.join(sector_info.get('top_holdings', [])[:4])}).\n"
+            f"- **Risk Factor**: Valuation compression if policy rates remain elevated for longer.\n\n"
+            f"*(Demo Mode: Set `GEMINI_API_KEY` in `.env` for dynamic Gemini 3.8 Flash synthesis.)*"
+        )
+
     macro_slice = "\n".join([
         f"- {m['name']}: {m['latest']:.2f} {m['unit']} (1M: {m['change_1m']:+.2f})"
         for m in macro_summary[:6]
@@ -334,6 +354,16 @@ def analyze_stress_scenario_ai(scenario_name: str, shocks: dict, macro_summary: 
     effective_key = (api_key or GEMINI_API_KEY or os.getenv("GEMINI_API_KEY", "")).strip()
     clean_model = (model_name or DEFAULT_GEMINI_MODEL).strip()
     
+    if not effective_key:
+        return (
+            f"### Simulated Stress Assessment Memo (Demo Mode)\n\n"
+            f"**Scenario Analyzed**: {scenario_name}\n\n"
+            f"1. **Regime Shift Assessment**: Macro shocks alter capital cost and sector factor rotation.\n"
+            f"2. **Sector Winners & Casualties**: Capital-intensive and rate-sensitive sectors face multiple compression while cash-flow leaders retain pricing power.\n"
+            f"3. **Tactical Risk-Off Rebalancing**: Maintain defensive quality posture and hedge duration risk.\n\n"
+            f"*(Demo Mode: Set `GEMINI_API_KEY` in `.env` for dynamic Gemini 3.8 Flash CRO stress memos.)*"
+        )
+
     shocks_text = "\n".join([f"- {k}: {v}" for k, v in shocks.items()])
     
     prompt = f"""

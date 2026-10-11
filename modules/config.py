@@ -4,16 +4,23 @@ Defines global macroeconomic indicators, sector mappings, and benchmark paramete
 Loads environment credentials with defaults for high-speed terminal operation.
 """
 
+from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env and fallback to .env.example
-load_dotenv(".env")
-load_dotenv(".env.example")
+# Path to project root .env
+BASE_DIR = Path(__file__).resolve().parent.parent
+ENV_PATH = BASE_DIR / ".env"
 
-# Default API Credentials
-FRED_API_KEY = os.getenv("FRED_API_KEY", "f7e21d24d50e3063ddd0821853a13ead").strip()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyBh8LSRgdPV8xrRIWu_RwM0wbTqM-Mv6HE").strip()
+# Load environment variables from .env file
+if ENV_PATH.exists():
+    load_dotenv(dotenv_path=ENV_PATH)
+else:
+    load_dotenv()
+
+# API Credentials - securely retrieved from .env or environment variables
+FRED_API_KEY = os.getenv("FRED_API_KEY", "").strip()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 DEFAULT_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
 
 # Supported Google Gemini Models (Defaulting to gemini-3.8-flash)
